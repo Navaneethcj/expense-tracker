@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert, 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Plus, Trash2, Wallet, Calendar } from 'lucide-react-native';
+import { ChevronLeft, Plus, Trash2, Wallet, Calendar, Pencil } from 'lucide-react-native';
 import { PrimaryButton } from '@/src/components';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/src/theme';
 import { IncomeEntry } from '@/src/types';
@@ -69,12 +69,20 @@ export default function SettingsScreen() {
       </View>
       <View style={styles.incomeRight}>
         <Text style={styles.incomeAmount}>{formatCurrency(item.amount)}</Text>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDelete(item.id, item.description)}
-        >
-          <Trash2 size={18} color={Colors.danger} />
-        </TouchableOpacity>
+        <View style={styles.actionGroup}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push({ pathname: '/add-income', params: { editId: item.id, amount: item.amount.toString(), description: item.description, date: item.date } })}
+          >
+            <Pencil size={16} color={Colors.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleDelete(item.id, item.description)}
+          >
+            <Trash2 size={16} color={Colors.danger} />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -234,8 +242,13 @@ const styles = StyleSheet.create({
     color: Colors.success,
     marginBottom: Spacing.xs,
   },
-  deleteButton: {
+  actionGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionButton: {
     padding: Spacing.xs,
+    marginLeft: Spacing.xs,
   },
   emptyContainer: {
     alignItems: 'center',

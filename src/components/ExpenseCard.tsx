@@ -10,6 +10,7 @@ import {
   GraduationCap,
   MoreHorizontal,
   Trash2,
+  Pencil,
 } from 'lucide-react-native';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/src/theme';
 import { Expense } from '@/src/types';
@@ -31,9 +32,10 @@ interface ExpenseCardProps {
   expense: Expense;
   onPress?: () => void;
   onDelete?: () => void;
+  onEdit?: () => void;
 }
 
-export const ExpenseCard: React.FC<ExpenseCardProps> = ({ expense, onPress, onDelete }) => {
+export const ExpenseCard: React.FC<ExpenseCardProps> = ({ expense, onPress, onDelete, onEdit }) => {
   const category = getCategoryById(expense.category);
   const IconComponent = iconMap[category?.icon || 'MoreHorizontal'];
   const iconColor = category?.color || Colors.secondary;
@@ -59,11 +61,18 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({ expense, onPress, onDe
           <Text style={styles.date}>{formatDateShort(expense.date)}</Text>
         </View>
       </TouchableOpacity>
-      {onDelete ? (
-        <TouchableOpacity style={styles.deleteButton} onPress={onDelete} activeOpacity={0.8}>
-          <Trash2 size={18} color={Colors.danger} />
-        </TouchableOpacity>
-      ) : null}
+      <View style={styles.actionGroup}>
+        {onEdit ? (
+          <TouchableOpacity style={styles.actionButton} onPress={onEdit} activeOpacity={0.8}>
+            <Pencil size={16} color={Colors.primary} />
+          </TouchableOpacity>
+        ) : null}
+        {onDelete ? (
+          <TouchableOpacity style={styles.actionButton} onPress={onDelete} activeOpacity={0.8}>
+            <Trash2 size={16} color={Colors.danger} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   );
 };
@@ -121,8 +130,13 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.textTertiary,
   },
-  deleteButton: {
-    padding: Spacing.sm,
+  actionGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginLeft: Spacing.sm,
+  },
+  actionButton: {
+    padding: Spacing.sm,
+    marginLeft: Spacing.xs,
   },
 });

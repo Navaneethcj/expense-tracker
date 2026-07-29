@@ -15,6 +15,7 @@ import {
   formatCurrency,
   getMonthlyIncomes,
   getHighestCategory,
+  getMonthlyHistory,
 } from '@/src/utils';
 
 export default function HomeScreen() {
@@ -79,6 +80,20 @@ export default function HomeScreen() {
   const totalTransactions = expenses.length;
   const recentExpenses = getRecentExpenses(expenses, 5);
   const highestCategory: CategoryStats | null = getHighestCategory(expenses);
+  const monthlyHistory = getMonthlyHistory(expenses, incomes);
+
+  // Prepare small chart data: last 6 months incomes
+  const incomeChartData = monthlyHistory.slice(0, 6).reverse().map((m) => m.totalIncome);
+
+  // Prepare sparkline for last 7 days expenses
+  const last7Days = Array.from({ length: 7 }).map((_, idx) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - idx));
+    const dayTotal = expenses
+      .filter((e) => new Date(e.date).toDateString() === d.toDateString())
+      .reduce((s, e) => s + e.amount, 0);
+    return dayTotal;
+  });
 
   return (
     <View style={styles.container}>
@@ -110,6 +125,7 @@ export default function HomeScreen() {
                 iconColor={Colors.primary}
                 iconBackgroundColor={Colors.primaryLight}
                 subtitle="Tap settings to add"
+                chartData={incomeChartData}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -119,6 +135,7 @@ export default function HomeScreen() {
                 icon={Calendar}
                 iconColor={Colors.warning}
                 iconBackgroundColor={Colors.warningLight}
+                progress={monthlyIncome > 0 ? Math.round((monthlyExpenses / monthlyIncome) * 100) : undefined}
               />
             </View>
           </View>
@@ -132,6 +149,7 @@ export default function HomeScreen() {
                 iconColor={savings >= 0 ? Colors.success : Colors.danger}
                 iconBackgroundColor={savings >= 0 ? Colors.successLight : Colors.dangerLight}
                 subtitle={savings >= 0 ? 'Great job!' : 'Over budget'}
+                progress={monthlyIncome > 0 ? Math.round((savings / monthlyIncome) * 100) : undefined}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -154,6 +172,7 @@ export default function HomeScreen() {
                 icon={TrendingUp}
                 iconColor={Colors.success}
                 iconBackgroundColor={Colors.successLight}
+                chartData={last7Days}
               />
             </View>
             <View style={styles.cardWrapper}>
@@ -199,6 +218,7 @@ export default function HomeScreen() {
             <ExpenseCard
               key={expense.id}
               expense={expense}
+              onEdit={() => router.push({ pathname: '/add-expense', params: { editId: expense.id, amount: expense.amount.toString(), category: expense.category, description: expense.description, date: expense.date } })}
               onDelete={() => handleDeleteExpense(expense.id, expense.description)}
             />
           ))
@@ -245,19 +265,22 @@ const styles = StyleSheet.create({
   },
   summaryGrid: {
     marginBottom: Spacing.xl,
+    marginHorizontal: -Spacing.lg,
   },
   row: {
     flexDirection: 'row',
-    marginBottom: Spacing.lg,
-  },
-  rowWide: {
     flexWrap: 'wrap',
+    marginBottom: Spacing.lg,
     justifyContent: 'space-between',
   },
+  rowWide: {
+    // preserved for larger layouts
+  },
   cardWrapper: {
-    flex: 1,
-    minWidth: 220,
-    marginRight: Spacing.lg,
+    flexBasis: '48%',
+    maxWidth: '48%',
+    minWidth: 140,
+    paddingHorizontal: Spacing.sm,
     marginBottom: Spacing.lg,
   },
   sectionHeader: {

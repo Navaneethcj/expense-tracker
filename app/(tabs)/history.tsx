@@ -73,6 +73,7 @@ export default function HistoryScreen() {
   const renderExpenseItem = ({ item }: { item: Expense }) => (
     <ExpenseCard
       expense={item}
+      onEdit={() => router.push({ pathname: '/add-expense', params: { editId: item.id, amount: item.amount.toString(), category: item.category, description: item.description, date: item.date } })}
       onDelete={() => handleDeleteExpense(item.id, item.description)}
     />
   );

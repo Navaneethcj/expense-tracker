@@ -1,23 +1,41 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { X, Wallet } from 'lucide-react-native';
 import { Header, InputField, PrimaryButton } from '@/src/components';
 import { Colors, Typography, Spacing, BorderRadius } from '@/src/theme';
 import { IncomeEntry } from '@/src/types';
-import { saveIncome } from '@/src/storage';
+import { getIncomes, saveIncome, updateIncome } from '@/src/storage';
 import { generateId } from '@/src/utils';
 
 export default function AddIncomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ editId?: string; amount?: string; description?: string; date?: string }>();
 
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [date] = useState(new Date().toISOString().split('T')[0]);
   const [errors, setErrors] = useState<{ amount?: string; description?: string }>({});
   const [loading, setLoading] = useState(false);
+  const isEditing = Boolean(params.editId);
+
+  useEffect(() => {
+    const editId = Array.isArray(params.editId) ? params.editId[0] : params.editId;
+    if (!editId) return;
+
+    const loadIncome = async () => {
+      const incomes = await getIncomes();
+      const existingIncome = incomes.find((item) => item.id === editId);
+      if (existingIncome) {
+        setAmount(existingIncome.amount.toString());
+        setDescription(existingIncome.description);
+      }
+    };
+
+    loadIncome();
+  }, [params.editId]);
 
   const validateForm = (): boolean => {
     const newErrors: { amount?: string; description?: string } = {};
@@ -44,15 +62,19 @@ export default function AddIncomeScreen() {
 
     setLoading(true);
     try {
-      const income: IncomeEntry = {
-        id: generateId(),
+      const incomeData: IncomeEntry = {
+        id: isEditing ? (Array.isArray(params.editId) ? params.editId[0] : params.editId) || generateId() : generateId(),
         amount: parseFloat(amount),
         description: description.trim(),
         date: date,
         createdAt: new Date().toISOString(),
       };
 
-      await saveIncome(income);
+      if (isEditing) {
+        await updateIncome(incomeData.id, incomeData);
+      } else {
+        await saveIncome(incomeData);
+      }
       router.back();
     } catch (error) {
       console.error('Error saving income:', error);
@@ -64,7 +86,7 @@ export default function AddIncomeScreen() {
   return (
     <View style={styles.container}>
       <Header
-        title="Add Income"
+        title={isEditing ? 'Edit Income' : 'Add Income'}
         rightComponent={
           <TouchableOpacity onPress={() => router.back()}>
             <X size={24} color={Colors.text} />
@@ -114,7 +136,7 @@ export default function AddIncomeScreen() {
 
         <View style={styles.buttonContainer}>
           <PrimaryButton
-            title="Add Income"
+            title={isEditing ? 'Save Changes' : 'Add Income'}
             onPress={handleSave}
             loading={loading}
             disabled={loading}

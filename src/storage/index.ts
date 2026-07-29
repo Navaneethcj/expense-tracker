@@ -118,6 +118,20 @@ export const getIncomes = async (): Promise<IncomeEntry[]> => {
   }
 };
 
+export const updateIncome = async (id: string, updatedIncome: Partial<IncomeEntry>): Promise<void> => {
+  try {
+    const incomes = await getIncomes();
+    const index = incomes.findIndex((income) => income.id === id);
+    if (index !== -1) {
+      incomes[index] = { ...incomes[index], ...updatedIncome };
+      await safeSetItem(INCOME_KEY, JSON.stringify(incomes));
+    }
+  } catch (error) {
+    console.error('Error updating income:', error);
+    throw error;
+  }
+};
+
 export const deleteIncome = async (id: string): Promise<void> => {
   try {
     const incomes = await getIncomes();

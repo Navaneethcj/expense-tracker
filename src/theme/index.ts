@@ -1,4 +1,6 @@
-export const Colors = {
+import { Appearance } from 'react-native';
+
+const light = {
   primary: '#2563EB',
   primaryLight: '#DBEAFE',
   primaryDark: '#1D4ED8',
@@ -22,6 +24,35 @@ export const Colors = {
   border: '#E2E8F0',
   borderLight: '#F1F5F9',
 };
+
+const dark = {
+  primary: '#60A5FA',
+  primaryLight: '#1E3A8A',
+  primaryDark: '#1E40AF',
+  secondary: '#94A3B8',
+  secondaryLight: '#0F172A',
+  background: '#0B1220',
+  surface: '#071127',
+  surfaceSecondary: '#0B1227',
+  success: '#34D399',
+  successLight: '#052E1F',
+  danger: '#F87171',
+  dangerLight: '#2A0F0F',
+  warning: '#FBBF24',
+  warningLight: '#3A2A0A',
+  info: '#38BDF8',
+  infoLight: '#062E3B',
+  infoDark: '#0369A1',
+  text: '#E6EEF8',
+  textSecondary: '#9AA9BD',
+  textTertiary: '#7E8F9F',
+  border: '#152033',
+  borderLight: '#0B1722',
+};
+
+const scheme = Appearance.getColorScheme();
+
+export const Colors = scheme === 'dark' ? dark : light;
 
 export const Typography = {
   h1: {

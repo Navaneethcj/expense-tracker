@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { X, Calendar } from 'lucide-react-native';
 import { Header, InputField, CategoryChip, PrimaryButton } from '@/src/components';
 import { Colors, Typography, Spacing, BorderRadius } from '@/src/theme';
 import { CATEGORIES } from '@/src/constants/categories';
 import { Expense } from '@/src/types';
-import { saveExpense } from '@/src/storage';
+import { getExpenses, saveExpense, updateExpense } from '@/src/storage';
 import { generateId } from '@/src/utils';
 
 interface FormErrors {
@@ -19,6 +19,7 @@ interface FormErrors {
 export default function AddExpenseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{ editId?: string; amount?: string; category?: string; description?: string; date?: string }>();
 
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -26,6 +27,25 @@ export default function AddExpenseScreen() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+  const isEditing = Boolean(params.editId);
+
+  useEffect(() => {
+    const editId = Array.isArray(params.editId) ? params.editId[0] : params.editId;
+    if (!editId) return;
+
+    const loadExpense = async () => {
+      const expenses = await getExpenses();
+      const existingExpense = expenses.find((item) => item.id === editId);
+      if (existingExpense) {
+        setAmount(existingExpense.amount.toString());
+        setSelectedCategory(existingExpense.category);
+        setDescription(existingExpense.description);
+        setDate(existingExpense.date);
+      }
+    };
+
+    loadExpense();
+  }, [params.editId]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -56,8 +76,8 @@ export default function AddExpenseScreen() {
 
     setLoading(true);
     try {
-      const expense: Expense = {
-        id: generateId(),
+      const expenseData: Expense = {
+        id: isEditing ? (Array.isArray(params.editId) ? params.editId[0] : params.editId) || generateId() : generateId(),
         amount: parseFloat(amount),
         category: selectedCategory!,
         description: description.trim(),
@@ -65,7 +85,11 @@ export default function AddExpenseScreen() {
         createdAt: new Date().toISOString(),
       };
 
-      await saveExpense(expense);
+      if (isEditing) {
+        await updateExpense(expenseData.id, expenseData);
+      } else {
+        await saveExpense(expenseData);
+      }
       router.back();
     } catch (error) {
       console.error('Error saving expense:', error);
@@ -86,7 +110,7 @@ export default function AddExpenseScreen() {
   return (
     <View style={styles.container}>
       <Header
-        title="Add Expense"
+        title={isEditing ? 'Edit Expense' : 'Add Expense'}
         rightComponent={
           <TouchableOpacity onPress={() => router.back()}>
             <X size={24} color={Colors.text} />
@@ -154,7 +178,7 @@ export default function AddExpenseScreen() {
 
         <View style={styles.buttonContainer}>
           <PrimaryButton
-            title="Save Expense"
+            title={isEditing ? 'Save Changes' : 'Save Expense'}
             onPress={handleSave}
             loading={loading}
             disabled={loading}
