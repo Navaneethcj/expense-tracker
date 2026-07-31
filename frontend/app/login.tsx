@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { InputField, PrimaryButton } from '@frontend/shared/components';
 import { Colors, Typography, Spacing } from '@frontend/theme';
@@ -41,8 +41,28 @@ export default function LoginScreen() {
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>Sign in to continue tracking your finances.</Text>
         <InputField label="Email" value={email} onChangeText={setEmail} placeholder="you@example.com" keyboardType="email-address" error={errors.email} />
-        <InputField label="Password" value={password} onChangeText={setPassword} placeholder="Enter password" error={errors.password} />
-        <PrimaryButton title="Login" onPress={handleLogin} loading={loading} />
+        <InputField
+           label="Password"
+           value={password}
+           onChangeText={setPassword}
+           placeholder="Enter password"
+          error={errors.password}
+/>
+
+<TouchableOpacity
+          style={styles.forgotPasswordContainer}
+          onPress={() => router.push('/forgot-password')}
+>
+          <Text style={styles.forgotPasswordText}>
+           Forgot Password?
+         </Text>
+</TouchableOpacity>
+
+<PrimaryButton
+  title="Login"
+  onPress={handleLogin}
+  loading={loading}
+/>
         <Text style={styles.footerText} onPress={() => router.push('/register')}>
           Don’t have an account? Register
         </Text>
@@ -58,6 +78,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     padding: Spacing.lg,
   },
+  forgotPasswordContainer: {
+  alignItems: 'flex-end',
+  marginBottom: Spacing.lg,
+},
+
+forgotPasswordText: {
+  color: Colors.primary,
+  fontWeight: '600',
+},
   card: {
     backgroundColor: Colors.surface,
     borderRadius: 20,
