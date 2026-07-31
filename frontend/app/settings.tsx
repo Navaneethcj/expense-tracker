@@ -1,5 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -56,7 +66,27 @@ export default function SettingsScreen() {
     );
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  // Web uses the browser's confirmation dialog
+  if (Platform.OS === 'web') {
+    const confirmed = window.confirm('Are you sure you want to logout?');
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await clearToken();
+      router.replace('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      alert('Logout failed. Please try again.');
+    }
+
+    return;
+  }
+
+  // Android / iOS
   Alert.alert(
     'Logout',
     'Are you sure you want to logout?',
@@ -74,6 +104,7 @@ export default function SettingsScreen() {
             router.replace('/login');
           } catch (error) {
             console.error('Logout failed:', error);
+            Alert.alert('Error', 'Unable to logout. Please try again.');
           }
         },
       },
