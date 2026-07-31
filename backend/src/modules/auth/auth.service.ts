@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { authRepository } from './auth.repository';
 import { LoginInput, RegisterInput, AuthUserPayload } from './auth.types';
+import { sendPasswordResetEmail } from '../../utils/email';
 
 const generateToken = (user: AuthUserPayload) => {
   const secret = process.env.JWT_SECRET || 'development-secret';
@@ -46,6 +48,51 @@ export const authService = {
       user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt },
     };
   },
+
+  forgotPassword: async (email: string) => {
+  const user = await authRepository.findUserByEmail(email);
+
+  // Always return successfully even if the email doesn't exist.
+  // This prevents attackers from discovering registered accounts.
+  if (!user) {
+    return;
+  }
+
+  // Generate a secure random token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // Token expires in 1 hour
+  const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+
+  await authRepository.saveResetToken(
+    user.id,
+    resetToken,
+    resetTokenExpiry
+  );
+
+  // For now, just print the token.
+  // Later we'll email it to the user.
+  await sendPasswordResetEmail(user.email, resetToken);
+},
+
+resetPassword: async (token: string, password: string) => {
+  const user = await authRepository.findUserByResetToken(token);
+
+  if (!user) {
+    throw new Error('Invalid or expired reset token');
+  }
+
+  if (
+    !user.resetTokenExpiry ||
+    user.resetTokenExpiry.getTime() < Date.now()
+  ) {
+    throw new Error('Reset token has expired');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  await authRepository.updatePassword(user.id, hashedPassword);
+},
 
   getProfile: async (userId: string) => {
     const user = await authRepository.findUserById(userId);

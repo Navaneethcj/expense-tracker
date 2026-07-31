@@ -35,6 +35,49 @@ export const authController = {
     }
   },
 
+  forgotPassword: async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    await authService.forgotPassword(email);
+
+    return sendSuccess(res, 200, {
+      message: 'If an account with that email exists, a password reset link has been sent.',
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to process forgot password request';
+
+    return sendError(res, 500, message);
+  }
+},
+
+resetPassword: async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+
+    await authService.resetPassword(token, password);
+
+    return sendSuccess(res, 200, {
+      message: 'Password reset successful.',
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Failed to reset password';
+
+    return sendError(
+      res,
+      message === 'Invalid or expired reset token' ||
+      message === 'Reset token has expired'
+        ? 400
+        : 500,
+      message
+    );
+  }
+},
+
   profile: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const result = await authService.getProfile(req.user?.id || '');
