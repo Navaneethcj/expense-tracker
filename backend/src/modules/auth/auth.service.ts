@@ -49,31 +49,35 @@ export const authService = {
     };
   },
 
-  forgotPassword: async (email: string) => {
-    const user = await authRepository.findUserByEmail(email);
+ forgotPassword: async (email: string) => {
+  console.log("STEP 1");
 
-    // Always return successfully even if the email doesn't exist.
-    // This prevents attackers from discovering registered accounts.
-    if (!user) {
-      return;
-    }
+  const user = await authRepository.findUserByEmail(email);
 
-    // Generate a secure random token
-    const resetToken = crypto.randomBytes(32).toString('hex');
+  console.log("STEP 2", user?.email);
 
-    // Token expires in 1 hour
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+  if (!user) {
+    console.log("STEP 3 - User not found");
+    return;
+  }
 
-    await authRepository.saveResetToken(
-      user.id,
-      resetToken,
-      resetTokenExpiry
-    );
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
 
-    // For now, just print the token.
-    // Later we'll email it to the user.
-    await sendPasswordResetEmail(user.email, resetToken);
-  },
+  console.log("STEP 4 - Token generated");
+
+  await authRepository.saveResetToken(
+    user.id,
+    resetToken,
+    resetTokenExpiry
+  );
+
+  console.log("STEP 5 - Token saved");
+
+  await sendPasswordResetEmail(user.email, resetToken);
+
+  console.log("STEP 6 - Email sent");
+}
 
   resetPassword: async (token: string, password: string) => {
     const user = await authRepository.findUserByResetToken(token);
