@@ -1,23 +1,14 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
+    "jsx": "react-jsx",
+     "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@frontend/*": [
-        "./src/*"
-      ],
-      "@frontend": [
-        "./src"
-      ],
-      "@shared/*": [
-        "./src/shared/*"
-      ],
-      "@features/*": [
-        "./src/features/*"
-      ]
+      "@/*": ["./*"],
+      "@frontend/*": ["./src/*"],
+      "@frontend": ["./src"],
+      "@shared/*": ["./src/shared/*"],
+      "@features/*": ["./src/features/*"]
     }
   },
   "include": [
