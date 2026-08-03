@@ -50,21 +50,28 @@ export const authService = {
   },
 
  forgotPassword: async (email: string) => {
-  console.log("STEP 1");
+
+  console.log("========== SERVICE ==========");
+  console.log("Searching for:", JSON.stringify(email));
+  console.log("Length:", email.length);
 
   const user = await authRepository.findUserByEmail(email);
 
-  console.log("STEP 2", user?.email);
+  console.log("Database returned:");
+  console.log(user);
 
   if (!user) {
-    console.log("STEP 3 - User not found");
+    console.log("USER NOT FOUND");
     return;
   }
 
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
+  console.log("USER FOUND");
 
-  console.log("STEP 4 - Token generated");
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  const resetTokenExpiry = new Date(
+    Date.now() + 60 * 60 * 1000
+  );
 
   await authRepository.saveResetToken(
     user.id,
@@ -72,11 +79,14 @@ export const authService = {
     resetTokenExpiry
   );
 
-  console.log("STEP 5 - Token saved");
+  console.log("TOKEN SAVED");
 
-  await sendPasswordResetEmail(user.email, resetToken);
+  await sendPasswordResetEmail(
+    user.email,
+    resetToken
+  );
 
-  console.log("STEP 6 - Email sent");
+  console.log("EMAIL FUNCTION FINISHED");
 },
 
   resetPassword: async (token: string, password: string) => {

@@ -37,16 +37,22 @@ export const authController = {
 
   forgotPassword: async (req: Request, res: Response) => {
   try {
+    console.log("========== CONTROLLER ==========");
+    console.log("Request Body:", req.body);
+    console.log("Email:", JSON.stringify(req.body.email));
+
     const { email } = req.body;
 
     await authService.forgotPassword(email);
 
     return sendSuccess(res, 200, {
-      message: 'If an account with that email exists, a password reset link has been sent.',
+      message: "If an account with that email exists, a password reset link has been sent.",
     });
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : 'Failed to process forgot password request';
+      error instanceof Error
+        ? error.message
+        : "Failed to process forgot password request";
 
     return sendError(res, 500, message);
   }

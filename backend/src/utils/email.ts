@@ -10,40 +10,64 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Verify SMTP connection when the server starts
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP Verify Error:", error);
-  } else {
-    console.log("✅ SMTP Server is ready");
-  }
-});
-
 export const sendPasswordResetEmail = async (
   email: string,
   resetToken: string
 ) => {
+  console.log("========== EMAIL ==========");
+  console.log("Recipient:", email);
+
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-  console.log("📧 Sending reset email to:", email);
-  console.log("🔗 Reset URL:", resetUrl);
+  console.log("Reset URL:", resetUrl);
 
   try {
     const info = await transporter.sendMail({
       from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Reset your password",
+      subject: 'Reset your password',
       html: `
-        <h2>Reset Password</h2>
-        <p>Click below to reset your password.</p>
-        <a href="${resetUrl}">${resetUrl}</a>
+        <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto;">
+          <h2>Reset your Password</h2>
+
+          <p>Hello,</p>
+
+          <p>You requested a password reset for your Expense Tracker account.</p>
+
+          <p>
+            <a href="${resetUrl}"
+               style="
+                 background:#2563eb;
+                 color:white;
+                 padding:12px 20px;
+                 text-decoration:none;
+                 border-radius:6px;
+                 display:inline-block;
+               ">
+               Reset Password
+            </a>
+          </p>
+
+          <p>If the button doesn't work, copy this link:</p>
+
+          <p>${resetUrl}</p>
+
+          <p>This link expires in <strong>1 hour</strong>.</p>
+
+          <p>If you didn't request this, you can safely ignore this email.</p>
+
+          <hr>
+
+          <small>Expense Tracker</small>
+        </div>
       `,
     });
 
-    console.log("✅ Email sent successfully");
+    console.log("EMAIL SENT SUCCESSFULLY");
     console.log(info);
+
   } catch (err) {
-    console.error("❌ Email sending failed");
+    console.error("EMAIL SEND FAILED");
     console.error(err);
     throw err;
   }
