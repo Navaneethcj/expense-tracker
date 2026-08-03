@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getStoredToken, clearToken } from '../storage/auth';
 
 const api = axios.create({
-  baseURL: "https://expense-tracker-api-1rq8.onrender.com",
+  baseURL: process.env.EXPO_PUBLIC_API_URL!,
   timeout: 15000,
 });
 
