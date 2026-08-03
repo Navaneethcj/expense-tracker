@@ -77,7 +77,7 @@ export const authService = {
   await sendPasswordResetEmail(user.email, resetToken);
 
   console.log("STEP 6 - Email sent");
-}
+},
 
   resetPassword: async (token: string, password: string) => {
     const user = await authRepository.findUserByResetToken(token);
