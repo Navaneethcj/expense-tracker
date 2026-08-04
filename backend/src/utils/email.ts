@@ -10,6 +10,21 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Verify SMTP connection when the server starts
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("==================================");
+    console.error("SMTP VERIFY FAILED");
+    console.error(error);
+    console.error("==================================");
+  } else {
+    console.log("==================================");
+    console.log("SMTP SERVER READY");
+    console.log(success);
+    console.log("==================================");
+  }
+});
+
 export const sendPasswordResetEmail = async (
   email: string,
   resetToken: string
@@ -20,12 +35,13 @@ export const sendPasswordResetEmail = async (
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   console.log("Reset URL:", resetUrl);
+  console.log("About to send email...");
 
   try {
     const info = await transporter.sendMail({
       from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Reset your password',
+      subject: "Reset your password",
       html: `
         <div style="font-family: Arial, sans-serif; max-width:600px; margin:auto;">
           <h2>Reset your Password</h2>
@@ -63,12 +79,14 @@ export const sendPasswordResetEmail = async (
       `,
     });
 
+    console.log("After sendMail()");
     console.log("EMAIL SENT SUCCESSFULLY");
     console.log(info);
-
   } catch (err) {
+    console.error("==================================");
     console.error("EMAIL SEND FAILED");
     console.error(err);
+    console.error("==================================");
     throw err;
   }
 };
