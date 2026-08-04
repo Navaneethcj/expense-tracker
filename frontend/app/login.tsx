@@ -30,13 +30,15 @@ export default function LoginScreen() {
     console.log("STEP 1");
 
     const response = await login(email.trim(), password);
-    console.log("STEP 2", response);
+console.log("STEP 2", response);
 
-    await saveToken(response.token);
-    console.log("STEP 3");
+await saveToken(response.token);
+console.log("STEP 3");
 
-    router.replace("/(tabs)");
-    console.log("STEP 4");
+// Force a full app reload (Web only)
+window.location.href = "/";
+
+console.log("STEP 4");
 
   } catch (error: any) {
     console.log("LOGIN ERROR:", error);
