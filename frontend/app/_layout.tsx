@@ -9,14 +9,19 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
-import { getStoredToken, getProfile } from '@frontend/features/auth/services/auth';
+import {
+  getStoredToken,
+  getProfile,
+} from '@frontend/features/auth/services/auth';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useFrameworkReady();
+
   const router = useRouter();
   const segments = useSegments();
+
   const [ready, setReady] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
 
@@ -27,18 +32,36 @@ export default function RootLayout() {
     'Inter-Bold': Inter_700Bold,
   });
 
+  // ---------------- BOOTSTRAP ----------------
   useEffect(() => {
     const bootstrap = async () => {
+      console.log("========== BOOTSTRAP ==========");
+
       try {
         const token = await getStoredToken();
+
+        console.log("TOKEN:", token);
+
         if (token) {
-          await getProfile();
+          console.log("Calling getProfile()...");
+
+          const profile = await getProfile();
+
+          console.log("PROFILE:", profile);
+
           setAuthenticated(true);
+
+          console.log("AUTHENTICATED = TRUE");
+        } else {
+          console.log("NO TOKEN FOUND");
         }
       } catch (error) {
-        console.warn('Auth bootstrap failed', error);
+        console.error("BOOTSTRAP ERROR:", error);
       } finally {
         setReady(true);
+
+        console.log("READY = TRUE");
+
         if (fontsLoaded || fontError) {
           SplashScreen.hideAsync();
         }
@@ -48,34 +71,47 @@ export default function RootLayout() {
     bootstrap();
   }, [fontsLoaded, fontError]);
 
+  // ---------------- NAVIGATION ----------------
   useEffect(() => {
-  if (!ready) return;
+    console.log("========== NAVIGATION ==========");
+    console.log("ready:", ready);
+    console.log("authenticated:", authenticated);
+    console.log("segments:", segments);
 
-  const currentRoute = segments[0];
+    if (!ready) return;
 
-  const publicRoutes = [
-    "login",
-    "register",
-    "forgot-password",
-    "reset-password",
-  ];
+    const currentRoute = segments[0];
 
-  if (authenticated) {
-    // If already logged in, don't stay on auth pages
-    if (publicRoutes.includes(currentRoute)) {
-      router.replace("/(tabs)");
+    console.log("currentRoute:", currentRoute);
+
+    const publicRoutes = [
+      'login',
+      'register',
+      'forgot-password',
+      'reset-password',
+    ];
+
+    if (authenticated) {
+      console.log("USER IS AUTHENTICATED");
+
+      if (publicRoutes.includes(currentRoute)) {
+        console.log("Redirecting to /(tabs)");
+        router.replace('/(tabs)');
+      }
+    } else {
+      console.log("USER IS NOT AUTHENTICATED");
+
+      if (
+        !publicRoutes.includes(currentRoute) &&
+        currentRoute !== undefined
+      ) {
+        console.log("Redirecting to /login");
+        router.replace('/login');
+      }
     }
-  } else {
-    // If not logged in, allow auth pages
-    if (
-      !publicRoutes.includes(currentRoute) &&
-      currentRoute !== undefined
-    ) {
-      router.replace("/login");
-    }
-  }
-}, [ready, authenticated, segments]);
+  }, [ready, authenticated, segments]);
 
+  // ---------------- SPLASH ----------------
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
@@ -89,18 +125,31 @@ export default function RootLayout() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ headerShown: false }} />
         <Stack.Screen
-            name="forgot-password"
-            options={{ headerShown: false }}
+          name="(tabs)"
+          options={{ headerShown: false }}
         />
 
         <Stack.Screen
-            name="reset-password"
-            options={{ headerShown: false }}
+          name="login"
+          options={{ headerShown: false }}
         />
+
+        <Stack.Screen
+          name="register"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="forgot-password"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="reset-password"
+          options={{ headerShown: false }}
+        />
+
         <Stack.Screen
           name="add-expense"
           options={{
@@ -108,6 +157,7 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
+
         <Stack.Screen
           name="add-income"
           options={{
@@ -115,12 +165,14 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
+
         <Stack.Screen
           name="settings"
           options={{
             headerShown: false,
           }}
         />
+
         <Stack.Screen
           name="monthly-history"
           options={{
@@ -128,9 +180,8 @@ export default function RootLayout() {
           }}
         />
       </Stack>
+
       <StatusBar style="auto" />
     </>
   );
 }
-
-
