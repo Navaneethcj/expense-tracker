@@ -10,10 +10,7 @@ export const sendPasswordResetEmail = async (
     `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   try {
-    console.log("========== RESEND ==========");
-    console.log("Recipient:", email);
-
-    const result = await resend.emails.send({
+    await resend.emails.send({
       from: "Expense Tracker <onboarding@resend.dev>",
       to: email,
       subject: "Reset your password",
@@ -39,11 +36,11 @@ export const sendPasswordResetEmail = async (
             </a>
           </p>
 
-          <p>If the button doesn't work:</p>
+          <p>If the button doesn't work, copy and paste this link into your browser:</p>
 
           <p>${resetUrl}</p>
 
-          <p>This link expires in 1 hour.</p>
+          <p>This link expires in <strong>1 hour</strong>.</p>
 
           <hr>
 
@@ -51,13 +48,8 @@ export const sendPasswordResetEmail = async (
         </div>
       `,
     });
-
-    console.log("EMAIL SENT");
-    console.log(result);
-
-  } catch (err) {
-    console.error("RESEND ERROR");
-    console.error(err);
-    throw err;
+  } catch (error) {
+    console.error("Failed to send password reset email:", error);
+    throw error;
   }
 };

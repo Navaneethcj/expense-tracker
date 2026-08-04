@@ -7,19 +7,30 @@ import { sendPasswordResetEmail } from '../../utils/email';
 
 const generateToken = (user: AuthUserPayload) => {
   const secret = process.env.JWT_SECRET || 'development-secret';
-  return jwt.sign({ id: user.id, email: user.email, name: user.name }, secret, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  } as jwt.SignOptions);
+
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    },
+    secret,
+    {
+      expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    } as jwt.SignOptions
+  );
 };
 
 export const authService = {
   register: async (input: RegisterInput) => {
     const existingUser = await authRepository.findUserByEmail(input.email);
+
     if (existingUser) {
       throw new Error('User already exists');
     }
 
     const hashedPassword = await bcrypt.hash(input.password, 10);
+
     const user = await authRepository.createUser({
       name: input.name,
       email: input.email,
@@ -27,94 +38,83 @@ export const authService = {
     });
 
     return {
-      token: generateToken({ id: user.id, email: user.email, name: user.name }),
-      user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt },
+      token: generateToken({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      }),
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+      },
     };
   },
 
   login: async (input: LoginInput) => {
-  console.log("========== LOGIN ==========");
-  console.log("Email:", input.email);
+    const user = await authRepository.findUserByEmail(input.email);
 
-  const user = await authRepository.findUserByEmail(input.email);
+    if (!user) {
+      throw new Error('Invalid credentials');
+    }
 
-  if (!user) {
-    console.log("USER NOT FOUND");
-    throw new Error("Invalid credentials");
-  }
+    const isPasswordValid = await bcrypt.compare(
+      input.password,
+      user.password
+    );
 
-  console.log("USER FOUND");
+    if (!isPasswordValid) {
+      throw new Error('Invalid credentials');
+    }
 
-  const isPasswordValid = await bcrypt.compare(
-    input.password,
-    user.password
-  );
+    return {
+      token: generateToken({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      }),
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+      },
+    };
+  },
 
-  console.log("PASSWORD MATCH:", isPasswordValid);
+  forgotPassword: async (email: string) => {
+    const user = await authRepository.findUserByEmail(email);
 
-  if (!isPasswordValid) {
-    throw new Error("Invalid credentials");
-  }
+    // Always return successfully to avoid revealing whether an email exists.
+    if (!user) {
+      return;
+    }
 
-  console.log("LOGIN SUCCESS");
+    const resetToken = crypto.randomBytes(32).toString('hex');
 
-  return {
-    token: generateToken({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    }),
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      createdAt: user.createdAt,
-    },
-  };
-},
+    const resetTokenExpiry = new Date(
+      Date.now() + 60 * 60 * 1000
+    );
 
- forgotPassword: async (email: string) => {
+    await authRepository.saveResetToken(
+      user.id,
+      resetToken,
+      resetTokenExpiry
+    );
 
-  console.log("========== SERVICE ==========");
-  console.log("Searching for:", JSON.stringify(email));
-  console.log("Length:", email.length);
+    await sendPasswordResetEmail(
+      user.email,
+      resetToken
+    );
+  },
 
-  const user = await authRepository.findUserByEmail(email);
-
-  console.log("Database returned:");
-  console.log(user);
-
-  if (!user) {
-    console.log("USER NOT FOUND");
-    return;
-  }
-
-  console.log("USER FOUND");
-
-  const resetToken = crypto.randomBytes(32).toString("hex");
-
-  const resetTokenExpiry = new Date(
-    Date.now() + 60 * 60 * 1000
-  );
-
-  await authRepository.saveResetToken(
-    user.id,
-    resetToken,
-    resetTokenExpiry
-  );
-
-  console.log("TOKEN SAVED");
-
-  await sendPasswordResetEmail(
-    user.email,
-    resetToken
-  );
-
-  console.log("EMAIL FUNCTION FINISHED");
-},
-
-  resetPassword: async (token: string, password: string) => {
-    const user = await authRepository.findUserByResetToken(token);
+  resetPassword: async (
+    token: string,
+    password: string
+  ) => {
+    const user =
+      await authRepository.findUserByResetToken(token);
 
     if (!user) {
       throw new Error('Invalid or expired reset token');
@@ -127,17 +127,31 @@ export const authService = {
       throw new Error('Reset token has expired');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(
+      password,
+      10
+    );
 
-    await authRepository.updatePassword(user.id, hashedPassword);
+    await authRepository.updatePassword(
+      user.id,
+      hashedPassword
+    );
   },
 
   getProfile: async (userId: string) => {
     const user = await authRepository.findUserById(userId);
+
     if (!user) {
       throw new Error('User not found');
     }
 
-    return { user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt } };
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+      },
+    };
   },
 };

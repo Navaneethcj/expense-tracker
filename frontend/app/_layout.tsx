@@ -32,35 +32,19 @@ export default function RootLayout() {
     'Inter-Bold': Inter_700Bold,
   });
 
-  // ---------------- BOOTSTRAP ----------------
   useEffect(() => {
     const bootstrap = async () => {
-      console.log("========== BOOTSTRAP ==========");
-
       try {
         const token = await getStoredToken();
 
-        console.log("TOKEN:", token);
-
         if (token) {
-          console.log("Calling getProfile()...");
-
-          const profile = await getProfile();
-
-          console.log("PROFILE:", profile);
-
+          await getProfile();
           setAuthenticated(true);
-
-          console.log("AUTHENTICATED = TRUE");
-        } else {
-          console.log("NO TOKEN FOUND");
         }
       } catch (error) {
-        console.error("BOOTSTRAP ERROR:", error);
+        console.warn('Auth bootstrap failed', error);
       } finally {
         setReady(true);
-
-        console.log("READY = TRUE");
 
         if (fontsLoaded || fontError) {
           SplashScreen.hideAsync();
@@ -71,18 +55,10 @@ export default function RootLayout() {
     bootstrap();
   }, [fontsLoaded, fontError]);
 
-  // ---------------- NAVIGATION ----------------
   useEffect(() => {
-    console.log("========== NAVIGATION ==========");
-    console.log("ready:", ready);
-    console.log("authenticated:", authenticated);
-    console.log("segments:", segments);
-
     if (!ready) return;
 
     const currentRoute = segments[0];
-
-    console.log("currentRoute:", currentRoute);
 
     const publicRoutes = [
       'login',
@@ -92,26 +68,19 @@ export default function RootLayout() {
     ];
 
     if (authenticated) {
-      console.log("USER IS AUTHENTICATED");
-
       if (publicRoutes.includes(currentRoute)) {
-        console.log("Redirecting to /(tabs)");
         router.replace('/(tabs)');
       }
     } else {
-      console.log("USER IS NOT AUTHENTICATED");
-
       if (
         !publicRoutes.includes(currentRoute) &&
         currentRoute !== undefined
       ) {
-        console.log("Redirecting to /login");
         router.replace('/login');
       }
     }
   }, [ready, authenticated, segments]);
 
-  // ---------------- SPLASH ----------------
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();

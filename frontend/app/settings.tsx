@@ -67,9 +67,9 @@ export default function SettingsScreen() {
   };
 
   const handleLogout = async () => {
-  if (Platform.OS === "web") {
+  if (Platform.OS === 'web') {
     const confirmed = window.confirm(
-      "Are you sure you want to logout?"
+      'Are you sure you want to logout?'
     );
 
     if (!confirmed) {
@@ -77,24 +77,13 @@ export default function SettingsScreen() {
     }
 
     try {
-      console.log("========== LOGOUT ==========");
-      console.log("Removing token...");
-
       await clearToken();
 
-      console.log("Token removed.");
-      console.log(
-        "Token after removal:",
-        localStorage.getItem("auth_token")
-      );
-
-      console.log("Reloading app...");
-
-      // Force a full reload so RootLayout reads the new auth state
-      window.location.href = "/login";
+      // Temporary workaround until auth flow is refactored
+      window.location.href = '/login';
     } catch (error) {
-      console.error("Logout failed:", error);
-      alert("Logout failed. Please try again.");
+      console.error('Logout failed:', error);
+      alert('Logout failed. Please try again.');
     }
 
     return;
@@ -102,30 +91,26 @@ export default function SettingsScreen() {
 
   // Android / iOS
   Alert.alert(
-    "Logout",
-    "Are you sure you want to logout?",
+    'Logout',
+    'Are you sure you want to logout?',
     [
       {
-        text: "Cancel",
-        style: "cancel",
+        text: 'Cancel',
+        style: 'cancel',
       },
       {
-        text: "Logout",
-        style: "destructive",
+        text: 'Logout',
+        style: 'destructive',
         onPress: async () => {
           try {
-            console.log("========== LOGOUT ==========");
-
             await clearToken();
 
-            console.log("Token removed.");
-
-            router.replace("/login");
+            router.replace('/login');
           } catch (error) {
-            console.error("Logout failed:", error);
+            console.error('Logout failed:', error);
             Alert.alert(
-              "Error",
-              "Unable to logout. Please try again."
+              'Error',
+              'Unable to logout. Please try again.'
             );
           }
         },
