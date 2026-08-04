@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stack, SplashScreen, useRouter } from 'expo-router';
+import { Stack, SplashScreen, useSegments, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@frontend/hooks/useFrameworkReady';
 import {
@@ -16,6 +16,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   useFrameworkReady();
   const router = useRouter();
+  const segments = useSegments();
   const [ready, setReady] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
 
@@ -48,13 +49,32 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    if (!ready) return;
-    if (authenticated) {
-      router.replace('/(tabs)');
-    } else {
-      router.replace('/login');
+  if (!ready) return;
+
+  const currentRoute = segments[0];
+
+  const publicRoutes = [
+    "login",
+    "register",
+    "forgot-password",
+    "reset-password",
+  ];
+
+  if (authenticated) {
+    // If already logged in, don't stay on auth pages
+    if (publicRoutes.includes(currentRoute)) {
+      router.replace("/(tabs)");
     }
-  }, [ready, authenticated]);
+  } else {
+    // If not logged in, allow auth pages
+    if (
+      !publicRoutes.includes(currentRoute) &&
+      currentRoute !== undefined
+    ) {
+      router.replace("/login");
+    }
+  }
+}, [ready, authenticated, segments]);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
