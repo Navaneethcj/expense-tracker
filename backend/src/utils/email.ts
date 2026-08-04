@@ -1,45 +1,20 @@
-import nodemailer from 'nodemailer';
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
-// Verify SMTP connection when the server starts
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("==================================");
-    console.error("SMTP VERIFY FAILED");
-    console.error(error);
-    console.error("==================================");
-  } else {
-    console.log("==================================");
-    console.log("SMTP SERVER READY");
-    console.log(success);
-    console.log("==================================");
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendPasswordResetEmail = async (
   email: string,
   resetToken: string
 ) => {
-  console.log("========== EMAIL ==========");
-  console.log("Recipient:", email);
-
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-  console.log("Reset URL:", resetUrl);
-  console.log("About to send email...");
+  const resetUrl =
+    `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   try {
-    const info = await transporter.sendMail({
-      from: `"Expense Tracker" <${process.env.EMAIL_USER}>`,
+    console.log("========== RESEND ==========");
+    console.log("Recipient:", email);
+
+    const result = await resend.emails.send({
+      from: "Expense Tracker <onboarding@resend.dev>",
       to: email,
       subject: "Reset your password",
       html: `
@@ -48,29 +23,27 @@ export const sendPasswordResetEmail = async (
 
           <p>Hello,</p>
 
-          <p>You requested a password reset for your Expense Tracker account.</p>
+          <p>You requested a password reset.</p>
 
           <p>
             <a href="${resetUrl}"
-               style="
-                 background:#2563eb;
-                 color:white;
-                 padding:12px 20px;
-                 text-decoration:none;
-                 border-radius:6px;
-                 display:inline-block;
-               ">
-               Reset Password
+              style="
+                background:#2563eb;
+                color:white;
+                padding:12px 20px;
+                text-decoration:none;
+                border-radius:6px;
+                display:inline-block;
+              ">
+              Reset Password
             </a>
           </p>
 
-          <p>If the button doesn't work, copy this link:</p>
+          <p>If the button doesn't work:</p>
 
           <p>${resetUrl}</p>
 
-          <p>This link expires in <strong>1 hour</strong>.</p>
-
-          <p>If you didn't request this, you can safely ignore this email.</p>
+          <p>This link expires in 1 hour.</p>
 
           <hr>
 
@@ -79,14 +52,12 @@ export const sendPasswordResetEmail = async (
       `,
     });
 
-    console.log("After sendMail()");
-    console.log("EMAIL SENT SUCCESSFULLY");
-    console.log(info);
+    console.log("EMAIL SENT");
+    console.log(result);
+
   } catch (err) {
-    console.error("==================================");
-    console.error("EMAIL SEND FAILED");
+    console.error("RESEND ERROR");
     console.error(err);
-    console.error("==================================");
     throw err;
   }
 };
