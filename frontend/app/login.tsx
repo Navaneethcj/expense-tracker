@@ -22,18 +22,33 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      const response = await login(email.trim(), password);
-      await saveToken(response.token);
-      router.replace('/(tabs)');
-    } catch (error: any) {
-      Alert.alert('Login failed', error?.response?.data?.message || 'Unable to sign in');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (!validate()) return;
+
+  setLoading(true);
+
+  try {
+    console.log("STEP 1");
+
+    const response = await login(email.trim(), password);
+    console.log("STEP 2", response);
+
+    await saveToken(response.token);
+    console.log("STEP 3");
+
+    router.replace("/(tabs)");
+    console.log("STEP 4");
+
+  } catch (error: any) {
+    console.log("LOGIN ERROR:", error);
+    console.log("RESPONSE:", error?.response);
+    Alert.alert(
+      "Login failed",
+      error?.response?.data?.message || error?.message || "Unknown error"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
