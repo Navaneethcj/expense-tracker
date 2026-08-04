@@ -52,9 +52,12 @@ export const login = async (
 };
 
 export const getProfile = async (): Promise<AuthUser> => {
-  const response = await api.get<ApiResponse<AuthUser>>(
-    '/api/auth/profile'
-  );
+  console.log("GET PROFILE START");
+
+  const response = await api.get("/api/auth/profile");
+
+  console.log("GET PROFILE SUCCESS");
+  console.log(response.data);
 
   return response.data.data;
 };
