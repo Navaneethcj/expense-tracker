@@ -33,21 +33,45 @@ export const authService = {
   },
 
   login: async (input: LoginInput) => {
-    const user = await authRepository.findUserByEmail(input.email);
-    if (!user) {
-      throw new Error('Invalid credentials');
-    }
+  console.log("========== LOGIN ==========");
+  console.log("Email:", input.email);
 
-    const isPasswordValid = await bcrypt.compare(input.password, user.password);
-    if (!isPasswordValid) {
-      throw new Error('Invalid credentials');
-    }
+  const user = await authRepository.findUserByEmail(input.email);
 
-    return {
-      token: generateToken({ id: user.id, email: user.email, name: user.name }),
-      user: { id: user.id, name: user.name, email: user.email, createdAt: user.createdAt },
-    };
-  },
+  if (!user) {
+    console.log("USER NOT FOUND");
+    throw new Error("Invalid credentials");
+  }
+
+  console.log("USER FOUND");
+
+  const isPasswordValid = await bcrypt.compare(
+    input.password,
+    user.password
+  );
+
+  console.log("PASSWORD MATCH:", isPasswordValid);
+
+  if (!isPasswordValid) {
+    throw new Error("Invalid credentials");
+  }
+
+  console.log("LOGIN SUCCESS");
+
+  return {
+    token: generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    }),
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    },
+  };
+},
 
  forgotPassword: async (email: string) => {
 
